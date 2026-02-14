@@ -5,7 +5,7 @@ const msgs = document.getElementById("msgs");
 let allChat = [];
 
 // the interval to poll at in milliseconds
-const INTERVAL = 3000;
+const INTERVAL = 1000;
 
 // a submit listener on the form in the HTML
 chat.addEventListener("submit", function (e) {
@@ -31,11 +31,18 @@ async function getNewMsgs() {
   let json;
   try {
     const res = await fetch("/poll");
+
+    if (res.status >= 400) {
+      throw new Error("There was an error while fetching messages");
+    }
+
     json = await res.json();
+    noOfFailures = 0;
+    return json.msg;
   } catch (err) {
     console.error("Polling error occurred", err);
+    noOfFailures++;
   }
-  return json.msg;
 }
 
 function render() {
@@ -51,14 +58,18 @@ function render() {
 const template = (user, msg) =>
   `<li class="collection-item"><span class="badge">${user}</span>${msg}</li>`;
 
+let noOfFailures = 0;
+const BACKOFF = 4000;
 let timeForNewRequest = 0;
 
 async function rafTimer(time) {
   if (timeForNewRequest <= time) {
     const latestMessages = getNewMsgs();
-    allChat = await latestMessages;
-    render();
-    timeForNewRequest = time + INTERVAL;
+    try {
+      allChat = await latestMessages;
+      render();
+    } catch (e) {}
+    timeForNewRequest = time + INTERVAL + noOfFailures * BACKOFF;
   }
 
   requestAnimationFrame(rafTimer);
