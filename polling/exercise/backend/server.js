@@ -28,6 +28,7 @@ app.get("/poll", function (req, res) {
 
 app.post("/poll", function (req, res) {
   const { user, text } = req.body;
+  console.log("Received message reuqest", { user, text });
   msg.push({
     user,
     text,

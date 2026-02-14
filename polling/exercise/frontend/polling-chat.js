@@ -14,7 +14,18 @@ chat.addEventListener("submit", function (e) {
   chat.elements.text.value = "";
 });
 
-async function postNewMsg(user, text) {}
+async function postNewMsg(user, text) {
+  fetch("/poll", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user,
+      text,
+    }),
+  });
+}
 
 async function getNewMsgs() {
   let json;
