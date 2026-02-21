@@ -46,6 +46,9 @@ server.on("upgrade", (req, socket) => {
 
   console.log("Upgraded to WebSocket!");
 
+  // Write something via the websocket to the client
+  socket.write(objToResponse({ msgs: getMsgs() }));
+
   // Add socket to the list of active connections
   connections.push(socket);
 
@@ -70,9 +73,6 @@ server.on("upgrade", (req, socket) => {
   socket.on("end", () => {
     connections = connections.filter((c) => c !== socket);
   });
-
-  // Write something via the websocket to the client
-  socket.write(objToResponse({ msgs: getMsgs() }));
 });
 
 const port = process.env.PORT || 8080;
