@@ -32,6 +32,7 @@ async function postNewMsg(user, text) {
 }
 
 async function getNewMsgs() {
+  console.log("BACK HERE");
   const utf8Decoder = new TextDecoder("utf-8");
   // First part is to connect to the server to start reading the stream.
   let reader;
@@ -44,15 +45,29 @@ async function getNewMsgs() {
   console.log("Connected to the server");
   presence.innerText = "🟢";
 
-  // Now try to read the first chunk of data in the response stream
-  try {
-    const readerResponse = await reader.read();
-    const chunk = utf8Decoder.decode(readerResponse.value, { stream: true });
-    console.log(chunk);
-  } catch (err) {
-    console.error("Error reading chunk from response stream", err);
-    presence.innerText = "🔴";
-  }
+  // Now try to read the response stream till the connection is actually closed by the server
+  let readerResponse;
+  do {
+    try {
+      readerResponse = await reader.read();
+      console.log(readerResponse.done);
+      const chunk = utf8Decoder.decode(readerResponse.value, { stream: true });
+      try {
+        if (chunk) {
+          const latestMessages = JSON.parse(chunk);
+          console.log(latestMessages);
+          allChat = latestMessages.msgs;
+          render();
+        }
+      } catch (err) {
+        console.error("Received invalid JSON from the stream", err);
+      }
+    } catch (err) {
+      console.error("Error reading chunk from response stream", err);
+      presence.innerText = "🔴";
+      return;
+    }
+  } while (!readerResponse.done);
 }
 
 function render() {

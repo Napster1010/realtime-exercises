@@ -40,9 +40,16 @@ server.on("stream", (stream, headers) => {
       "content-type": "text/plain; charset=utf-8",
     });
 
+    // Add the current stream to active connections
+    connections.push(stream);
+
     stream.write(JSON.stringify({ msgs: getMsgs() }));
 
-    stream.on("close", () => console.log("Disconnected", stream.id));
+    stream.on("close", () => {
+      console.log("Disconnected", stream.id);
+      // Remove from active connections..
+      connections = connections.filter((c) => c !== stream);
+    });
   }
 });
 
@@ -64,11 +71,19 @@ server.on("request", async (req, res) => {
     const data = Buffer.concat(buffers).toString();
     const { user, text } = JSON.parse(data);
 
-    /*
-     *
-     * some code goes here
-     *
-     */
+    // Push the new message
+    msg.push({
+      user,
+      text,
+      time: Date.now(),
+    });
+
+    res.end();
+
+    // Make other connections aware about the new message
+    connections.forEach((c) => {
+      c.write(JSON.stringify({ msgs: getMsgs() }));
+    });
   }
 });
 
