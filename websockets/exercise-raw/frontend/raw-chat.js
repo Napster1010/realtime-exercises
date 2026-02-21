@@ -14,11 +14,19 @@ async function postNewMsg(user, text) {
   // code goes here
 }
 
-/*
- *
- * your code goes here
- *
- */
+const websocket = new WebSocket("ws://localhost:8080", ["json"]);
+
+websocket.addEventListener("open", () => {
+  console.log("Connected");
+  presence.innerText = "🟢";
+});
+
+websocket.addEventListener("message", (event) => {
+  console.log("Received a new message over websocket from sever", event);
+  const latestMessages = JSON.parse(event.data);
+  allChat = latestMessages.msgs;
+  render();
+});
 
 function render() {
   const html = allChat.map(({ user, text }) => template(user, text));
