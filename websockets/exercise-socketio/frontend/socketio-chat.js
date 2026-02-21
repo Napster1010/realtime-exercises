@@ -17,6 +17,12 @@ socket.on("disconnect", () => {
   presence.innerText = "🔴";
 });
 
+socket.on("chat:public", (data) => {
+  console.log("Received new message", data);
+  allChat = data.msgs;
+  render();
+});
+
 chat.addEventListener("submit", function (e) {
   e.preventDefault();
   postNewMsg(chat.elements.user.value, chat.elements.text.value);
@@ -24,11 +30,10 @@ chat.addEventListener("submit", function (e) {
 });
 
 async function postNewMsg(user, text) {
-  /*
-   *
-   * Code goes here
-   *
-   */
+  socket.emit("chat:public", {
+    user,
+    text,
+  });
 }
 
 function render() {

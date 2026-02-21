@@ -24,8 +24,21 @@ const io = new Server(server, {});
 io.on("connection", (socket) => {
   console.log("Connected to", socket.id);
 
+  socket.emit("chat:public", { msgs: getMsgs() });
+
   socket.on("disconnect", () => {
     console.log("Disconnected with", socket.id);
+  });
+
+  socket.on("chat:public", (data) => {
+    console.log("Received data from client", data);
+    msg.push({
+      user: data.user,
+      text: data.text,
+      time: Date.now(),
+    });
+    // broadcast now!
+    io.emit("chat:public", { msgs: getMsgs() });
   });
 });
 
