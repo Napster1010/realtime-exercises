@@ -30,8 +30,8 @@ const server = http2.createSecureServer({
 });
 
 server.on("stream", (stream, headers) => {
-  method = headers[":method"];
-  path = headers[":path"];
+  const method = headers[":method"];
+  const path = headers[":path"];
   if (path === "/msgs" && method === "GET") {
     console.log("Connected to stream", stream.id);
 

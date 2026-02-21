@@ -32,16 +32,32 @@ async function postNewMsg(user, text) {
 }
 
 async function getNewMsgs() {
-  /*
-   *
-   * code goes here
-   *
-   */
+  const utf8Decoder = new TextDecoder("utf-8");
+  // First part is to connect to the server to start reading the stream.
+  let reader;
+  try {
+    const response = await fetch("/msgs");
+    reader = response.body.getReader();
+  } catch (err) {
+    console.error("Couldn't connect to the server", err);
+  }
+  console.log("Connected to the server");
+  presence.innerText = "🟢";
+
+  // Now try to read the first chunk of data in the response stream
+  try {
+    const readerResponse = await reader.read();
+    const chunk = utf8Decoder.decode(readerResponse.value, { stream: true });
+    console.log(chunk);
+  } catch (err) {
+    console.error("Error reading chunk from response stream", err);
+    presence.innerText = "🔴";
+  }
 }
 
 function render() {
   const html = allChat.map(({ user, text, time, id }) =>
-    template(user, text, time, id)
+    template(user, text, time, id),
   );
   msgs.innerHTML = html.join("\n");
 }
