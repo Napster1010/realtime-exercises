@@ -46,6 +46,31 @@ server.on("upgrade", (req, socket) => {
 
   console.log("Upgraded to WebSocket!");
 
+  // Add socket to the list of active connections
+  connections.push(socket);
+
+  // Add handler to accept data from the socket
+  socket.on("data", (buffer) => {
+    const message = parseMessage(buffer);
+    if (message) {
+      msg.push({
+        user: message.user,
+        text: message.text,
+        time: Date.now(),
+      });
+
+      // Broadcast to all active connections
+      connections.forEach((c) => c.write(objToResponse({ msgs: getMsgs() })));
+    } else if (message == null) {
+      socket.end();
+    }
+  });
+
+  // Add handler to end socket connection
+  socket.on("end", () => {
+    connections = connections.filter((c) => c !== socket);
+  });
+
   // Write something via the websocket to the client
   socket.write(objToResponse({ msgs: getMsgs() }));
 });
